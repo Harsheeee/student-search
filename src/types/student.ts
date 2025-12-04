@@ -9,10 +9,12 @@ export interface Student {
   gender: string;
   bloodgroup: string;
   photo: string;
+  batch: string;
 }
 
 export interface FilterState {
   search: string;
   gender: string;
   department: string;
+  batch: string;
 }

@@ -18,7 +18,8 @@ export const parseCSV = (file: File): Promise<Student[]> => {
             room: row.room || '',
             gender: row.gender || '',
             bloodgroup: row.bloodgroup || '',
-            photo: row.photo || '/placeholder.svg'
+            photo: row.photo || '/placeholder.svg',
+            batch: row.batch || ''
           }));
           resolve(students);
         } catch (error) {
@@ -48,20 +49,22 @@ export const parseCSVFromText = (csvText: string): Student[] => {
     room: row.room || '',
     gender: row.gender || '',
     bloodgroup: row.bloodgroup || '',
-    photo: row.photo || '/placeholder.svg'
+    photo: row.photo || '/placeholder.svg',
+    batch: row.batch || ''
   }));
 };
 
-export const filterStudents = (students: Student[], filters: { search: string; gender: string; department: string }) => {
+export const filterStudents = (students: Student[], filters: { search: string; gender: string; department: string; batch: string }) => {
   return students.filter(student => {
     const searchMatch = !filters.search || 
       student.name.toLowerCase().includes(filters.search.toLowerCase()) ||
       student.rollno.toLowerCase().includes(filters.search.toLowerCase());
     
     const genderMatch = !filters.gender || student.gender.toLowerCase() === filters.gender.toLowerCase();
+    const batchMatch = !filters.batch || student.batch.toLowerCase() === filters.batch.toLowerCase();
     
     const departmentMatch = !filters.department || student.department.toLowerCase() === filters.department.toLowerCase();
     
-    return searchMatch && genderMatch && departmentMatch;
+    return searchMatch && genderMatch && departmentMatch && batchMatch;
   });
 };

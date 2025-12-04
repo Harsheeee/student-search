@@ -62,6 +62,21 @@ export const FilterBar = ({
               <SelectItem value="female">Female</SelectItem>
             </SelectContent>
           </Select>
+
+          <Select 
+            value={filters.batch || "all"} 
+            onValueChange={(value) => onFiltersChange({ ...filters, batch: value === "all" ? "" : value })}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="All Batches" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Batches</SelectItem>
+              <SelectItem value="25">Y25</SelectItem>
+              <SelectItem value="24">Y24</SelectItem>
+              <SelectItem value="23">Y23</SelectItem>
+            </SelectContent>
+          </Select>
           
           <Select 
             value={filters.department || "all"} 
@@ -81,10 +96,10 @@ export const FilterBar = ({
           </Select>
         </div>
         
-        {(filters.search || filters.gender || filters.department) && (
+        {(filters.search || filters.gender || filters.department || filters.batch) && (
           <Button 
-            variant="outline" 
-            onClick={() => onFiltersChange({ search: '', gender: '', department: '' })}
+            variant="secondary" 
+            onClick={() => onFiltersChange({ search: '', gender: '', department: '', batch: '' })}
             className="mt-4"
           >
             Clear Filters

@@ -18,7 +18,8 @@ const Index = () => {
   const [filters, setFilters] = useState<FilterState>({
     search: '',
     gender: '',
-    department: ''
+    department: '',
+    batch: '',
   });
 
   // Filter students based on current filters
