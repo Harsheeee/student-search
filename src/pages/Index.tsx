@@ -3,7 +3,7 @@ import { Student, FilterState } from '@/types/student';
 import { StudentCard } from '@/components/StudentCard';
 import { StudentModal } from '@/components/StudentModal';
 import { FilterBar } from '@/components/FilterBar';
-import { filterStudents } from '@/utils/csvParser';
+import { filterStudents } from '@/utils/filter';
 import { useStudentData } from '@/hooks/useStudentData';
 import { Loader2, Users } from 'lucide-react';
 
@@ -22,48 +22,62 @@ const Index = () => {
     batch: '',
   });
 
-  // Filter students based on current filters
+  // Filter students based on current filters (client-side)
   const filteredStudents = useMemo(() => {
     return filterStudents(allStudents, filters);
   }, [allStudents, filters]);
 
-  // Get unique departments for filter dropdown
+  // Get unique departments for filter dropdown (filter out falsy)
   const departments = useMemo(() => {
-    const uniqueDepts = new Set(allStudents.map(student => student.department));
+    const uniqueDepts = new Set(
+      allStudents
+        .map(student => student.department)
+        .filter(Boolean) // remove empty/null/undefined
+    );
     return Array.from(uniqueDepts).sort();
   }, [allStudents]);
 
-  // Update displayed students when filters change
+  // Reset displayed students when filters or the base data change
   useEffect(() => {
     setCurrentPage(1);
     setDisplayedStudents(filteredStudents.slice(0, ITEMS_PER_PAGE));
   }, [filteredStudents]);
 
-  // Load more students for infinite scroll
+  // Load more students — use functional state updates to avoid stale closures
   const loadMoreStudents = useCallback(() => {
-    const nextPage = currentPage + 1;
-    const startIndex = (nextPage - 1) * ITEMS_PER_PAGE;
-    const endIndex = startIndex + ITEMS_PER_PAGE;
-    const newStudents = filteredStudents.slice(startIndex, endIndex);
-    
-    if (newStudents.length > 0) {
-      setDisplayedStudents(prev => [...prev, ...newStudents]);
-      setCurrentPage(nextPage);
-    }
-  }, [currentPage, filteredStudents]);
+    setCurrentPage(prevPage => {
+      const nextPage = prevPage + 1;
+      const startIndex = (nextPage - 1) * ITEMS_PER_PAGE;
+      const endIndex = startIndex + ITEMS_PER_PAGE;
+      const newStudents = filteredStudents.slice(startIndex, endIndex);
 
-  // Infinite scroll handler
-  useEffect(() => {
-    const handleScroll = () => {
-      if (
-        window.innerHeight + document.documentElement.scrollTop >=
-        document.documentElement.offsetHeight - 1000
-      ) {
-        loadMoreStudents();
+      if (newStudents.length > 0) {
+        setDisplayedStudents(prevDisplayed => [...prevDisplayed, ...newStudents]);
+        return nextPage;
       }
+
+      return prevPage; // no change if nothing to add
+    });
+  }, [filteredStudents]);
+
+  // Infinite scroll handler (throttle/guarded)
+  useEffect(() => {
+    let ticking = false;
+    const handleScroll = () => {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(() => {
+        const nearBottom =
+          window.innerHeight + document.documentElement.scrollTop >=
+          document.documentElement.offsetHeight - 800; // threshold
+        if (nearBottom) {
+          loadMoreStudents();
+        }
+        ticking = false;
+      });
     };
 
-    window.addEventListener('scroll', handleScroll);
+    window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, [loadMoreStudents]);
 
@@ -112,7 +126,7 @@ const Index = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-8">
               {displayedStudents.map((student) => (
                 <StudentCard
-                  key={student.rollno}
+                  key={student.rollno ?? student.username}
                   student={student}
                   onClick={() => handleStudentClick(student)}
                 />

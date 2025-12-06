@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Student } from '@/types/student';
-import { parseCSVFromText } from '@/utils/csvParser';
+import { loadAllStudents } from '@/utils/loadAllStudents';
 import { useToast } from '@/hooks/use-toast';
 
 export const useStudentData = () => {
@@ -9,33 +9,37 @@ export const useStudentData = () => {
   const { toast } = useToast();
 
   useEffect(() => {
-    const loadStudents = async () => {
+    let mounted = true;
+
+    (async () => {
       try {
-        const response = await fetch('/students.csv');
-        if (!response.ok) {
-          throw new Error('Failed to load student data');
-        }
-        const csvText = await response.text();
-        const parsedStudents = parseCSVFromText(csvText);
-        setStudents(parsedStudents);
-        toast({
-          title: "Student Data Loaded",
-          description: `${parsedStudents.length} students loaded successfully.`,
+        setIsLoading(true);
+
+        const rows = await loadAllStudents(1000); // fetch in batches
+        if (!mounted) return;
+
+        setStudents(rows);
+
+        toast?.({
+          title: 'Student Data Loaded',
+          description: `${rows.length} students loaded.`,
         });
-      } catch (error) {
-        console.error('Error loading student data:', error);
-        toast({
-          title: "Loading Error",
-          description: "Failed to load student data. Please check the CSV file.",
-          variant: "destructive",
+      } catch (err: any) {
+        console.error('Error loading students:', err);
+        toast?.({
+          title: 'Loading Error',
+          description: err?.message || 'Failed to load students from DB',
+          variant: 'destructive',
         });
       } finally {
-        setIsLoading(false);
+        if (mounted) setIsLoading(false);
       }
-    };
+    })();
 
-    loadStudents();
+    return () => {
+      mounted = false;
+    };
   }, [toast]);
 
-  return { students, isLoading };
+  return { students, isLoading, setStudents };
 };
