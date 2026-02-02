@@ -10,7 +10,7 @@ export async function loadAllStudents(batchSize = 1000): Promise<Student[]> {
     const to = from + batchSize - 1;
 
     const { data, error } = await supabase
-      .from('students')
+      .from('students_data')
       .select('*')
       .range(from, to);
 

@@ -16,7 +16,7 @@ export const StudentCard = ({ student, onClick }: StudentCardProps) => {
     >
       <div className="flex items-center space-x-4">
         <Avatar className="h-16 w-16 ring-2 ring-primary/10">
-          <AvatarImage src={student.ccphoto || student.photo} alt={student.name} />
+          <AvatarImage src={student.photo} alt={student.name} />
           <AvatarFallback className="bg-primary/5 text-primary font-semibold">
             {student.name.split(' ').map(n => n[0]).join('')}
           </AvatarFallback>
