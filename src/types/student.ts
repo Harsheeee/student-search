@@ -10,6 +10,7 @@ export interface Student {
   bloodgroup: string;
   photo: string;
   batch: string;
+  ccphoto: string;
 }
 
 export interface FilterState {
